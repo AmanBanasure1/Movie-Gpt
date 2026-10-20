@@ -47,28 +47,48 @@ export default async function handler(req, res) {
   // Optional: set USE_SEARCH=true in Vercel for fresh info (new releases, OTT)
   if (process.env.USE_SEARCH === "true") body.tools = [{ google_search: {} }];
 
+  const url =
+    "https://generativelanguage.googleapis.com/v1beta/models/" +
+    encodeURIComponent(model) + ":generateContent";
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let lastStatus = "";
+
   try {
-    const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/" +
-      encodeURIComponent(model) + ":generateContent";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await r.json();
 
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify(body)
-    });
-    const data = await r.json();
+      if (r.ok) {
+        const text = data.candidates?.[0]?.content?.parts
+          ?.map(p => p.text || "").join("\n").trim();
+        if (!text) {
+          return res.status(502).json({ error: "AI returned no text. Try again." });
+        }
+        return res.status(200).json({ text });
+      }
 
-    if (!r.ok) {
-      console.error("AI provider error:", data.error?.status, data.error?.message);
-      return res.status(502).json({ error: "AI error: " + (data.error?.status || "") + " - " + (data.error?.message || "unknown") });
+      lastStatus = data.error?.status || "";
+      console.error("AI provider error:", lastStatus, data.error?.message);
+
+      // Sirf busy/limit errors pe retry karo
+      if (!["UNAVAILABLE", "RESOURCE_EXHAUSTED", "INTERNAL"].includes(lastStatus)) break;
+      await sleep(1000 * (attempt + 1));
     }
 
-    const text = data.candidates?.[0]?.content?.parts
-      ?.map(p => p.text || "").join("\n").trim();
-    if (!text) return res.status(502).json({ error: "AI returned no text. Try again." });
-
-    return res.status(200).json({ text });
+    const busy = ["UNAVAILABLE", "RESOURCE_EXHAUSTED"].includes(lastStatus);
+    return res.status(502).json({
+      error: busy
+        ? "AI abhi busy hai. Thodi der baad dobara try karo."
+        : "AI service failed. Please try again."
+    });
   } catch (e) {
     console.error("AI request failed:", e.message);
     return res.status(502).json({ error: "Could not reach the AI service." });
