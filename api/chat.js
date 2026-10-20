@@ -61,7 +61,7 @@ export default async function handler(req, res) {
 
     if (!r.ok) {
       console.error("AI provider error:", data.error?.status, data.error?.message);
-      return res.status(502).json({ error: "AI service failed. Check model access and API limits." });
+      return res.status(502).json({ error: "AI error: " + (data.error?.status || "") + " - " + (data.error?.message || "unknown") });
     }
 
     const text = data.candidates?.[0]?.content?.parts
