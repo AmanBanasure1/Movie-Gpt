@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieGPT - Ask anything about movies</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>🎬 MovieGPT</h1>
+      <button id="clearBtn" type="button">New chat</button>
+    </header>
+
+    <div id="chat" class="chat" aria-live="polite"></div>
+
+    <div id="chips" class="chips">
+      <button type="button">Best thriller movies on OTT?</button>
+      <button type="button">Pushpa 2 ki story batao</button>
+      <button type="button">Shah Rukh Khan ki top 5 films</button>
+      <button type="button">Family ke saath dekhne layak movies</button>
+    </div>
+
+    <form id="chatForm">
+      <input id="msg" maxlength="1000" autocomplete="off" required
+        placeholder="Movie, actor, series ya recommendation puchho...">
+      <button id="sendBtn" type="submit">Send</button>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
