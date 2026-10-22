@@ -40,9 +40,7 @@ export default async function handler(req, res) {
   }
 
   const body = {
-    systemInstruction: { parts: [{ text: SYSTEM +
-  "\nToday's date: " + new Date().toISOString().slice(0, 10) +
-  ". For recent releases, box office or OTT availability, use search and prefer the latest information." }] },,
+    systemInstruction: { parts: [{ text: SYSTEM }] },
     contents,
     generationConfig: { temperature: 0.6, maxOutputTokens: 1000 }
   };
